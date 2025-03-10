@@ -6,7 +6,6 @@ import pyvisa
 signal_gen = pyvisa.ResourceManager().open_resource(
     f'TCPIP0::{SIGNAL_GEN_IP}::inst0::INSTR'
 )
-
 router_gen = APIRouter()
 
 @router_gen.post(
@@ -32,6 +31,7 @@ def gen_set(
     summary='Узнать серийный номер генератора ВЧ (как проверка подключения)'
 )
 def gen_sernum() -> str:
+    """Извлекает серийный номер, записанный во внутренней памяти генератора."""
     return signal_gen.query('*IDN?').split(',')[2]
 
 @router_gen.get(
@@ -40,6 +40,7 @@ def gen_sernum() -> str:
     summary='Узнать включено ли излучение'
 )
 def gen_outrf() -> bool:
+    """Состояние высокочастотного выхода генератора: вкл или выкл."""
     return signal_gen.query(':OUTPut:STATe?').rstrip() == '1'
 
 @router_gen.get(
@@ -48,6 +49,7 @@ def gen_outrf() -> bool:
     summary='Узнать центральную частоту генератора [МГц]'
 )
 def gen_freqcentr() -> float:
+    """Установленная частота генератора."""
     return float(signal_gen.query(':SOURce:FREQuency:CW?').rstrip())/1000000
 
 @router_gen.get(
@@ -56,6 +58,7 @@ def gen_freqcentr() -> float:
     summary='Узнать частоту внешнего опорного генератора [МГц]'
 )
 def gen_freqref() -> float:
+    """Ожидаемая частота внешнего опорного генератора."""
     return float(signal_gen.query(':ROSCillator:EXTernal:FREQuency?').rstrip())/1000000
 
 @router_gen.get(
@@ -64,6 +67,7 @@ def gen_freqref() -> float:
     summary='Узнать активирован ли вход внешнего опорного генератора'
 )
 def gen_refstatus() -> bool:
+    """Состояние выхода внешнего опорного генератора."""
     return signal_gen.query(':ROSCillator:SOURce?') == 'EXT\n'
 
 @router_gen.get(
@@ -72,6 +76,7 @@ def gen_refstatus() -> bool:
     summary='Узнать установленную выходную мощность [dBm]'
 )
 def gen_outpwr() -> float:
+    """Уровень генерации на выходе RF генератора."""
     return float(signal_gen.query(':POWer:LEVel?').rstrip())
 
 @router_gen.get(
@@ -80,6 +85,7 @@ def gen_outpwr() -> float:
     summary='Узнать режим работы генератора'
 )
 def gen_mode() -> str:
+    """Режим работы генератора"""
     return signal_gen.query(':FREQuency:MODE?')
 
 @router_gen.post(
@@ -88,6 +94,7 @@ def gen_mode() -> str:
     summary='Включить излучение'
 )
 def gen_rfon():
+    """Активация выхода RF генератора."""
     signal_gen.write(':OUTPut:STATe ON')
     return 'Излучение включено'
 
@@ -97,6 +104,7 @@ def gen_rfon():
     summary='Выключить излучение'
 )
 def gen_rfoff():
+    """Деактивация выхода RF генератора."""
     signal_gen.write(':OUTPut:STATe OFF')
     return 'Излучение выключено'
 
@@ -107,6 +115,4 @@ def gen_rfoff():
 )
 def gen_rffreq(frequence: float):
     signal_gen.write(f':SOURce:FREQuency:CW {frequence*1000000}')
-    if gen_freqcentr() == frequence:
-        return 'Ok'
-    return 'Error'
+    return gen_freqcentr() == frequence
