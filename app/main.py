@@ -1,11 +1,14 @@
-from fastapi import FastAPI
-from endpoints.generator import router_gen
-from endpoints.connection import router_connect
 import uvicorn
-
+from endpoints.connection import router_connect
+from endpoints.generator import router_gen
+from fastapi import FastAPI
 
 app = FastAPI()
-app.include_router(router_connect, prefix='/connections',tags=['Подключение с приборами'],)
+app.include_router(
+    router_connect,
+    prefix='/connections',
+    tags=['Подключение с приборами'],
+)
 app.include_router(router_gen, prefix='/generators')
 
 

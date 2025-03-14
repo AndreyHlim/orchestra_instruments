@@ -6,10 +6,9 @@ DESCRIPTIONS = {
                        '- Низкочастотный генератор: Agilent 33220A'),
 }
 
-DEFAULT_SET_INSTR = {
-    'SIGNAL_GEN':{
-        'REF_EXT': 10000000,
-        'MODE': 'CW',
-        'OUT_LVL': 25,
-    }
+# Дефолтные настройки генератора сигналов
+DEFAULT_SET_SIGNAL = {
+    'REF_EXT': 10000000,
+    'MODE': 'CW',
+    'OUT_LVL': 25,
 }
