@@ -1,9 +1,9 @@
-import pyvisa
-from enum import Enum
-from fastapi import APIRouter, Depends
-from schemas.connections import SInstumentsAdd
 from typing import Annotated
 
+import pyvisa
+from fastapi import APIRouter, Depends
+from schemas.connections import SInstumentsAdd, TypeInstr
+from schemas.generators import SGeneratorsAdd
 
 router_connect = APIRouter()
 instruments = {
@@ -11,11 +11,6 @@ instruments = {
     'Generator Sounds': None,
     'Spectrum Analyzer': None,
 }
-
-class TypeInstr(str, Enum):
-    generator_signals = 'Generator Signals'
-    generator_sounds = 'Generator Sounds'
-    spectrum_analyzer = 'Spectrum Analyzer'
 
 
 @router_connect.get(
@@ -27,38 +22,28 @@ def get_instruments():
 
 
 @router_connect.post(
-    '/generator',
+    '/instruments',
     summary='Подключение к высокочастотному генератору'
 )
-def gen_rf(genrf: Annotated[SInstumentsAdd, Depends()], inst_type: TypeInstr):
+def gen_rf(genrf: Annotated[SInstumentsAdd, Depends()]):
     global signal_gen
-    signal_gen=connection_instrument(genrf.ip_address, inst_type)
+    signal_gen = connection_instrument(genrf.ip_address, genrf.type_instrument)
     return instruments
-
-
-# @router_connect.post(
-#     '/sound',
-#     summary='Подключение к генератору низких частот'
-# )
-# def gen_lf(genlf: Annotated[SInstumentsAdd, Depends()]):
-#     global sound_gen
-#     sound_gen=connection_instrument(genlf.ip_address,'Generator Sounds')
-#     return instruments
-
-
-# @router_connect.post(
-#     '/analizer',
-#     summary='Подключение к анализатору спектра'
-# )
-# def analizer(analizer: Annotated[SInstumentsAdd, Depends()]):
-#     global spectrum_analizer
-#     spectrum_analizer=connection_instrument(analizer.ip_address,'Spectrum Analyzer')
-#     return instruments
 
 
 def connection_instrument(ip_address: str, type_instr: TypeInstr):
     instr = pyvisa.ResourceManager().open_resource(
         f'TCPIP0::{ip_address}::inst0::INSTR'
     )
+    if type_instr == TypeInstr.generator_signals:
+        instr = SGeneratorsAdd(
+            ip_address=ip_address,
+            type_instrument=type_instr,
+            ser_num='11111111',
+            model='model1111',
+        )
+    else:
+        instr = None
     instruments[type_instr] = instr.resource_info
+    instruments[type_instr] = instr
     return instr
