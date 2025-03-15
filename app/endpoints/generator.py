@@ -1,6 +1,7 @@
+from fastapi import APIRouter
+
 import endpoints.connection as connect
 from constants import DEFAULT_SET_SIGNAL
-from fastapi import APIRouter
 
 router_gen = APIRouter()
 
