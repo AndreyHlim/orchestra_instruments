@@ -12,11 +12,10 @@ app.include_router(
 )
 app.include_router(
     router_disconnect,
-    prefix='/disconnect',
+    prefix='/disconnections',
     tags=['Подключение с приборами'],
 )
 app.include_router(router_gen, prefix='/generators')
-
 
 if __name__ == '__main__':
     uvicorn.run(app='main:app', reload=True)

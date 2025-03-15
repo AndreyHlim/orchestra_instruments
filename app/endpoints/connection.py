@@ -4,22 +4,28 @@ import pyvisa
 from fastapi import APIRouter, Depends
 
 from schemas.connections import SInstumentsAdd, TypeInstr
-from schemas.generators import SGeneratorsAdd
+from schemas.generators import SGeneratorAdd
+from schemas.instruments import Instruments
 
 router_connect = APIRouter()
 router_disconnect = APIRouter()
-instruments = {
-    'Generator Signals': None,
-    'Generator Sounds': None,
-    'Spectrum Analyzer': None,
-}
+# instruments = {
+#     'Generator Signals': None,
+#     'Generator Sounds': None,
+#     'Spectrum Analyzer': None,
+# }
+instruments = Instruments(
+    signal_generator=None,
+    sound_generator=None,
+    spectrum_analizer=None,
+)
 
 
 @router_connect.get(
     '/all',
     summary='Получение списка подключенных приборов'
 )
-def get_instruments():
+def get_instruments() -> Instruments:
     return {'Подключенные приборы': instruments}
 
 
@@ -38,15 +44,15 @@ def connection_instrument(genrf: SInstumentsAdd):
         f'TCPIP0::{genrf.ip_address}::inst0::INSTR'
     )
     if genrf.type_instrument == TypeInstr.generator_signals:
-        instr = SGeneratorsAdd(
+        instr = SGeneratorAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
             ser_num=instr.resource_info[3],
             model=instr.resource_info[2],
         )
+        instruments.signal_generator = instr
     else:
         instr = None
-    instruments[genrf.type_instrument] = instr
     return instr
 
 

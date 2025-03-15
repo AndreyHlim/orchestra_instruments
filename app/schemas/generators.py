@@ -12,7 +12,7 @@ class GenMode(str, Enum):
     list = 'list'
 
 
-class SGeneratorsAdd(SInstumentsAdd):
+class SGeneratorAdd(SInstumentsAdd):
     ip_address: str
     ser_num: str
     model: str
