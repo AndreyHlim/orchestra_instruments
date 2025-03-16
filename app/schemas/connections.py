@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, IPvAnyAddress
 
 
 class TypeInstr(str, Enum):
@@ -10,7 +10,7 @@ class TypeInstr(str, Enum):
 
 
 class SInstrumentsAdd(BaseModel):
-    ip_address: str
+    ip_address: IPvAnyAddress
     type_instrument: TypeInstr
 
 
