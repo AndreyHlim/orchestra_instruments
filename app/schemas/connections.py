@@ -9,6 +9,11 @@ class TypeInstr(str, Enum):
     spectrum_analyzer = 'Spectrum Analyzer'
 
 
-class SInstumentsAdd(BaseModel):
+class SInstrumentsAdd(BaseModel):
     ip_address: str
     type_instrument: TypeInstr
+
+
+class SInstrInfo(SInstrumentsAdd):
+    model: str
+    ser_num: str

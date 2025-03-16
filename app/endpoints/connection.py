@@ -3,17 +3,13 @@ from typing import Annotated
 import pyvisa
 from fastapi import APIRouter, Depends
 
-from schemas.connections import SInstumentsAdd, TypeInstr
+from schemas.connections import SInstrInfo, SInstrumentsAdd, TypeInstr
 from schemas.generators import SGeneratorAdd
 from schemas.instruments import Instruments
+from schemas.sounds import SSoundGenAdd
 
 router_connect = APIRouter()
 router_disconnect = APIRouter()
-# instruments = {
-#     'Generator Signals': None,
-#     'Generator Sounds': None,
-#     'Spectrum Analyzer': None,
-# }
 instruments = Instruments(
     signal_generator=None,
     sound_generator=None,
@@ -33,13 +29,13 @@ def get_instruments() -> Instruments:
     '/instruments',
     summary='Подключение к прибору по IP-адресу'
 )
-def gen_rf(genrf: Annotated[SInstumentsAdd, Depends()]):
+def instr_connect(genrf: Annotated[SInstrumentsAdd, Depends()]) -> SInstrInfo:
     global signal_gen
     signal_gen = connection_instrument(genrf)
     return instruments
 
 
-def connection_instrument(genrf: SInstumentsAdd):
+def connection_instrument(genrf: SInstrumentsAdd):
     instr = pyvisa.ResourceManager().open_resource(
         f'TCPIP0::{genrf.ip_address}::inst0::INSTR'
     )
@@ -47,10 +43,18 @@ def connection_instrument(genrf: SInstumentsAdd):
         instr = SGeneratorAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
-            ser_num=instr.resource_info[3],
             model=instr.resource_info[2],
+            ser_num=instr.resource_info[3],
         )
         instruments.signal_generator = instr
+    elif genrf.type_instrument == TypeInstr.generator_sounds:
+        instr = SSoundGenAdd(
+            ip_address=genrf.ip_address,
+            type_instrument=genrf.type_instrument,
+            model=instr.resource_info[2],
+            ser_num=instr.resource_info[3],
+        )
+        instruments.sound_generator = instr
     else:
         instr = None
     return instr
@@ -60,9 +64,9 @@ def connection_instrument(genrf: SInstumentsAdd):
     '/generator',
     summary='Отключение от прибора',
 )
-def disconnect_instr(type_instr: TypeInstr):
+def disconnect_instr(type_instr: TypeInstr) -> str:
     if instruments[type_instr] is not None:
         instr = instruments[type_instr]
         instr.close()
-        return f'Подключение с {type_instr} разорвано'
-    return f'Поделючение с {type_instr} отсутствовало'
+        return f'Подключение с {type_instr} разорвано.'
+    return f'Поделючение с {type_instr} отсутствовало.'
