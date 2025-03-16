@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import Field
 
-from schemas.connections import SInstumentsAdd
+from schemas.connections import SInstrInfo, TypeInstr
 
 
 class GenMode(str, Enum):
@@ -12,13 +12,14 @@ class GenMode(str, Enum):
     list = 'list'
 
 
-class SGeneratorAdd(SInstumentsAdd):
-    ip_address: str
-    ser_num: str
-    model: str
+class SGeneratorInfo(SInstrInfo):
+    type_instrument: TypeInstr = Field(default=TypeInstr.generator_signals)
+
+
+class SGeneratorAdd(SGeneratorInfo):
     mode_work: GenMode = Field(
         default=GenMode.cw,
-        description='Выбор режимаработы генератора ВЧ сигналов'
+        description='Выбор режима работы генератора ВЧ сигналов'
     )
     freq_ext: int = Field(
         ge=10000000,
