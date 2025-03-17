@@ -4,9 +4,9 @@ from pydantic import BaseModel, IPvAnyAddress
 
 
 class TypeInstr(str, Enum):
-    generator_signals = 'Generator Signals'
-    generator_sounds = 'Generator Sounds'
-    spectrum_analyzer = 'Spectrum Analyzer'
+    signal_generator = 'Generator Signals'
+    sound_generator = 'Generator Sounds'
+    spectrum_analizer = 'Spectrum Analyzer'
 
 
 class SInstrumentsAdd(BaseModel):

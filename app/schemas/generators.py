@@ -13,7 +13,7 @@ class GenMode(str, Enum):
 
 
 class SGeneratorInfo(SInstrInfo):
-    type_instrument: TypeInstr = Field(default=TypeInstr.generator_signals)
+    type_instrument: TypeInstr = Field(default=TypeInstr.signal_generator)
 
 
 class SGeneratorAdd(SGeneratorInfo):

@@ -21,7 +21,7 @@ class UnitOut(str, Enum):
 
 
 class SSoundGenInfo(SInstrInfo):
-    type_instrument: TypeInstr = Field(default=TypeInstr.generator_sounds)
+    type_instrument: TypeInstr = Field(default=TypeInstr.sound_generator)
 
 
 class SSoundGenAdd(SSoundGenInfo):

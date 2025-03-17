@@ -22,7 +22,7 @@ instruments = Instruments(
     summary='Получение списка подключенных приборов'
 )
 def get_instruments() -> Instruments:
-    return {'Подключенные приборы': instruments}
+    return instruments
 
 
 @router_connect.post(
@@ -32,29 +32,29 @@ def get_instruments() -> Instruments:
 def instr_connect(genrf: Annotated[SInstrumentsAdd, Depends()]) -> SInstrInfo:
     global signal_gen
     signal_gen = connection_instrument(genrf)
-    return instruments
+    return getattr(instruments, genrf.type_instrument.name)
 
 
 def connection_instrument(genrf: SInstrumentsAdd):
     instr = pyvisa.ResourceManager().open_resource(
         f'TCPIP0::{genrf.ip_address}::inst0::INSTR'
     )
-    if genrf.type_instrument == TypeInstr.generator_signals:
-        instr = SGeneratorAdd(
+    if genrf.type_instrument == TypeInstr.signal_generator:
+        instrument = SGeneratorAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
             model=instr.resource_info[2],
             ser_num=instr.resource_info[3],
         )
-        instruments.signal_generator = instr
-    elif genrf.type_instrument == TypeInstr.generator_sounds:
-        instr = SSoundGenAdd(
+        instruments.signal_generator = instrument
+    elif genrf.type_instrument == TypeInstr.sound_generator:
+        instrument = SSoundGenAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
             model=instr.resource_info[2],
             ser_num=instr.resource_info[3],
         )
-        instruments.sound_generator = instr
+        instruments.sound_generator = instrument
     else:
         instr = None
     return instr
@@ -65,8 +65,11 @@ def connection_instrument(genrf: SInstrumentsAdd):
     summary='Отключение от прибора',
 )
 def disconnect_instr(type_instr: TypeInstr) -> str:
-    if instruments[type_instr] is not None:
-        instr = instruments[type_instr]
-        instr.close()
+    instr = getattr(instruments, type_instr.name)
+    if  instr is not None:
+        pyvisa.ResourceManager().open_resource(
+            f'TCPIP0::{instr.ip_address}::inst0::INSTR'
+        ).close()
+        # Обновить instruments поставив None в нужном месте
         return f'Подключение с {type_instr} разорвано.'
-    return f'Поделючение с {type_instr} отсутствовало.'
+    return f'Подключение с {type_instr} отсутствовало.'
