@@ -66,10 +66,10 @@ def connection_instrument(genrf: SInstrumentsAdd):
 )
 def disconnect_instr(type_instr: TypeInstr) -> str:
     instr = getattr(instruments, type_instr.name)
-    if  instr is not None:
+    if instr is not None:
         pyvisa.ResourceManager().open_resource(
             f'TCPIP0::{instr.ip_address}::inst0::INSTR'
         ).close()
-        # Обновить instruments поставив None в нужном месте
+        setattr(instruments, type_instr.name, None)
         return f'Подключение с {type_instr} разорвано.'
     return f'Подключение с {type_instr} отсутствовало.'
