@@ -1,9 +1,18 @@
-from fastapi import APIRouter
-
-import endpoints.connection as connect
 from constants import DEFAULT_SET_SIGNAL
+from endpoints.connection import instruments
+from fastapi import APIRouter, HTTPException, status
 
 router_gen = APIRouter()
+
+
+def generator():
+    instr = instruments.signal_generator
+    if instr is not None and instr.is_connect:
+        return instruments.signal_generator.resource
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Отсутствует подключенный ВЧ генератор сигналов"
+    )
 
 
 @router_gen.post(
@@ -16,10 +25,10 @@ def gen_set(
         mode: str = DEFAULT_SET_SIGNAL['MODE'],
         out_power: int = DEFAULT_SET_SIGNAL['OUT_LVL'],
 ):
-    connect.signal_gen.write(f':ROSCillator:EXTernal:FREQuency {freq_ext}')
-    connect.signal_gen.write(':ROSCillator:SOURce EXTernal')
-    connect.signal_gen.write(f':FREQuency:MODE {mode}')
-    connect.signal_gen.write(f':POWer:LEVel {out_power}')
+    generator().write(f':ROSCillator:EXTernal:FREQuency {freq_ext}')
+    generator().write(':ROSCillator:SOURce EXTernal')
+    generator().write(f':FREQuency:MODE {mode}')
+    generator().write(f':POWer:LEVel {out_power}')
     return 'Ok'
 
 
@@ -30,7 +39,7 @@ def gen_set(
 )
 def gen_sernum() -> str:
     """Извлекает серийный номер, записанный во внутренней памяти генератора."""
-    return connect.signal_gen.query('*IDN?').split(',')[2]
+    return generator().query('*IDN?')
 
 
 @router_gen.get(
@@ -40,7 +49,7 @@ def gen_sernum() -> str:
 )
 def gen_outrf() -> bool:
     """Состояние высокочастотного выхода генератора: вкл или выкл."""
-    return connect.signal_gen.query(':OUTPut:STATe?').rstrip() == '1'
+    return generator().query(':OUTPut:STATe?').rstrip() == '1'
 
 
 @router_gen.get(
@@ -50,9 +59,7 @@ def gen_outrf() -> bool:
 )
 def gen_freqcentr() -> float:
     """Установленная частота генератора."""
-    return float(connect.signal_gen.query(
-        ':SOURce:FREQuency:CW?'
-    ).rstrip())/1000000
+    return float(generator().query(':SOURce:FREQuency:CW?').rstrip())/1000000
 
 
 @router_gen.get(
@@ -62,7 +69,7 @@ def gen_freqcentr() -> float:
 )
 def gen_freqref() -> float:
     """Ожидаемая частота внешнего опорного генератора."""
-    return float(connect.signal_gen.query(
+    return float(generator().query(
         ':ROSCillator:EXTernal:FREQuency?'
     ).rstrip())/1000000
 
@@ -74,7 +81,7 @@ def gen_freqref() -> float:
 )
 def gen_refstatus() -> bool:
     """Состояние выхода внешнего опорного генератора."""
-    return connect.signal_gen.query(':ROSCillator:SOURce?') == 'EXT\n'
+    return generator().query(':ROSCillator:SOURce?') == 'EXT\n'
 
 
 @router_gen.get(
@@ -84,7 +91,7 @@ def gen_refstatus() -> bool:
 )
 def gen_outpwr() -> float:
     """Уровень генерации на выходе RF генератора."""
-    return float(connect.signal_gen.query(':POWer:LEVel?').rstrip())
+    return float(generator().query(':POWer:LEVel?').rstrip())
 
 
 @router_gen.get(
@@ -94,7 +101,7 @@ def gen_outpwr() -> float:
 )
 def gen_mode() -> str:
     """Режим работы генератора"""
-    return connect.signal_gen.query(':FREQuency:MODE?')
+    return generator().query(':FREQuency:MODE?')
 
 
 @router_gen.post(
@@ -104,7 +111,7 @@ def gen_mode() -> str:
 )
 def gen_rfon():
     """Активация выхода RF генератора."""
-    connect.signal_gen.write(':OUTPut:STATe ON')
+    generator().write(':OUTPut:STATe ON')
     return 'Излучение включено'
 
 
@@ -115,7 +122,7 @@ def gen_rfon():
 )
 def gen_rfoff():
     """Деактивация выхода RF генератора."""
-    connect.signal_gen.write(':OUTPut:STATe OFF')
+    generator().write(':OUTPut:STATe OFF')
     return 'Излучение выключено'
 
 
@@ -125,5 +132,5 @@ def gen_rfoff():
     summary='Установка частоты излучения [МГц]'
 )
 def gen_rffreq(frequence: float):
-    connect.signal_gen.write(f':SOURce:FREQuency:CW {frequence*1000000}')
+    generator().write(f':SOURce:FREQuency:CW {frequence*1000000}')
     return gen_freqcentr() == frequence

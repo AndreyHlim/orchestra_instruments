@@ -1,8 +1,7 @@
 import uvicorn
-from fastapi import FastAPI
-
 from endpoints.connection import router_connect, router_disconnect
 from endpoints.generator import router_gen
+from fastapi import FastAPI
 
 app = FastAPI()
 app.include_router(

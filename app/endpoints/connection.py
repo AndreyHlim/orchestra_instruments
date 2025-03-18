@@ -2,7 +2,6 @@ from typing import Annotated
 
 import pyvisa
 from fastapi import APIRouter, Depends
-
 from schemas.connections import SInstrInfo, SInstrumentsAdd, TypeInstr
 from schemas.generators import SGeneratorAdd
 from schemas.instruments import Instruments
@@ -43,16 +42,20 @@ def connection_instrument(genrf: SInstrumentsAdd):
         instrument = SGeneratorAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
-            model=instr.resource_info[2],
-            ser_num=instr.resource_info[3],
+            model=instr.query('*IDN?'),
+            port=instr.resource_info[3],
+            is_connect=True,
+            resource=instr
         )
         instruments.signal_generator = instrument
     elif genrf.type_instrument == TypeInstr.sound_generator:
         instrument = SSoundGenAdd(
             ip_address=genrf.ip_address,
             type_instrument=genrf.type_instrument,
-            model=instr.resource_info[2],
-            ser_num=instr.resource_info[3],
+            model=instr.query('*IDN?'),
+            port=instr.resource_info[3],
+            resource=instr,
+            is_connect=True,
         )
         instruments.sound_generator = instrument
     else:
@@ -66,10 +69,11 @@ def connection_instrument(genrf: SInstrumentsAdd):
 )
 def disconnect_instr(type_instr: TypeInstr) -> str:
     instr = getattr(instruments, type_instr.name)
-    if instr is not None:
+    if instr is not None and instr.is_connect:
         pyvisa.ResourceManager().open_resource(
             f'TCPIP0::{instr.ip_address}::inst0::INSTR'
         ).close()
-        setattr(instruments, type_instr.name, None)
+        instr.is_connect = False
+        instr.resource = None
         return f'Подключение с {type_instr} разорвано.'
     return f'Подключение с {type_instr} отсутствовало.'
