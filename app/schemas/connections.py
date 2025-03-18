@@ -1,6 +1,7 @@
 from enum import Enum
 
-from pydantic import BaseModel, IPvAnyAddress
+from pydantic import BaseModel, ConfigDict, Field, IPvAnyAddress
+from pyvisa.resources import Resource
 
 
 class TypeInstr(str, Enum):
@@ -16,4 +17,7 @@ class SInstrumentsAdd(BaseModel):
 
 class SInstrInfo(SInstrumentsAdd):
     model: str
-    ser_num: str
+    port: str
+    is_connect: bool
+    resource: Resource = Field(exclude=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)

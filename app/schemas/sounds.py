@@ -1,7 +1,7 @@
 from enum import Enum
 
 from pydantic import Field
-
+from pyvisa.resources import Resource
 from schemas.connections import SInstrInfo, TypeInstr
 
 
@@ -20,13 +20,11 @@ class UnitOut(str, Enum):
     dbm = 'DBM'
 
 
-class SSoundGenInfo(SInstrInfo):
+class SSoundGenAdd(SInstrInfo):
     type_instrument: TypeInstr = Field(default=TypeInstr.sound_generator)
-
-
-class SSoundGenAdd(SSoundGenInfo):
     out_status: bool = Field(default=False)
     out_lvl: int = Field(ge=0, le=3, default=3)
     unit_out: UnitOut = Field(default=UnitOut.vpp)
     freq: float = Field(ge=0.000001, le=20000000, default=1025)
     type_signal: TypeLFSignals = Field(default=TypeLFSignals.sinus)
+    resource: Resource
