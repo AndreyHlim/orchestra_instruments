@@ -6,6 +6,8 @@ from schemas.connections import SInstrInfo, SInstrumentsAdd, TypeInstr
 from schemas.generators import SGeneratorAdd
 from schemas.instruments import Instruments
 from schemas.sounds import SSoundGenAdd
+from fastapi import HTTPException, status
+
 
 router_connect = APIRouter()
 router_disconnect = APIRouter()
@@ -22,6 +24,16 @@ instruments = Instruments(
 )
 def get_instruments() -> Instruments:
     return instruments
+
+
+def get_instr(type_instrument: str):
+    instr = getattr(instruments, type_instrument)
+    if instr is not None and instr.is_connect:
+        return instr.resource
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f'Отсутствует подключенный {type_instrument}'
+    )
 
 
 @router_connect.post(
@@ -68,12 +80,7 @@ def connection_instrument(genrf: SInstrumentsAdd):
     summary='Отключение от прибора',
 )
 def disconnect_instr(type_instr: TypeInstr) -> str:
-    instr = getattr(instruments, type_instr.name)
-    if instr is not None and instr.is_connect:
-        pyvisa.ResourceManager().open_resource(
-            f'TCPIP0::{instr.ip_address}::inst0::INSTR'
-        ).close()
-        instr.is_connect = False
-        instr.resource = None
-        return f'Подключение с {type_instr} разорвано.'
-    return f'Подключение с {type_instr} отсутствовало.'
+    instr = get_instr('signal_generator')
+    instr.is_connect = False
+    instr.resource = None
+    return f'Подключение с {type_instr} разорвано.'

@@ -1,5 +1,5 @@
 from constants import DEFAULT_SET_SIGNAL
-from endpoints.connection import instruments
+from endpoints.connection import instruments, get_instr
 from fastapi import APIRouter, HTTPException, status
 
 router_gen = APIRouter()
@@ -39,7 +39,7 @@ def gen_set(
 )
 def gen_sernum() -> str:
     """Извлекает серийный номер, записанный во внутренней памяти генератора."""
-    return generator().query('*IDN?')
+    return get_instr('signal_generator').query('*IDN?')
 
 
 @router_gen.get(
