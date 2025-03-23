@@ -1,20 +1,11 @@
 import uvicorn
-from endpoints.connection import router_connect, router_disconnect
-from endpoints.generator import router_gen
 from fastapi import FastAPI
+from routers import router_v1
+
 
 app = FastAPI()
-app.include_router(
-    router_connect,
-    prefix='/connections',
-    tags=['Подключение с приборами'],
-)
-app.include_router(
-    router_disconnect,
-    prefix='/disconnections',
-    tags=['Подключение с приборами'],
-)
-app.include_router(router_gen, prefix='/generators')
+
+app.include_router(router_v1, prefix='/api_v1')
 
 if __name__ == '__main__':
     uvicorn.run(app='main:app', reload=True)
