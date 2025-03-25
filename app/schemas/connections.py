@@ -21,3 +21,9 @@ class SInstrInfo(SInstrumentsAdd):
     is_connect: bool
     resource: Resource = Field(exclude=True)
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @classmethod
+    def sernum(self):
+        return self.resource(
+            self.type_instrument.name
+        ).query('*IDN?')

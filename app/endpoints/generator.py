@@ -39,7 +39,7 @@ def gen_set(
 )
 def gen_sernum() -> str:
     """Извлекает серийный номер, записанный во внутренней памяти генератора."""
-    return get_instr('signal_generator').query('*IDN?')
+    return get_instr('signal_generator').sernum
 
 
 @router_gen.get(
